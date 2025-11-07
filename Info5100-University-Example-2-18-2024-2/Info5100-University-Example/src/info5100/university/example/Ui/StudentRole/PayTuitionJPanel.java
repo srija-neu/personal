@@ -1,20 +1,65 @@
+package info5100.university.example.Ui.StudentRole;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
-package info5100.university.example.Ui.StudentRole;
+import info5100.university.example.Context.UniversityContext;
+import info5100.university.example.CourseSchedule.CourseLoad;
+import info5100.university.example.CourseSchedule.CourseOffer;
+import info5100.university.example.CourseSchedule.SeatAssignment;
+import info5100.university.example.Persona.Person;
+import info5100.university.example.Persona.StudentDirectory;
+import info5100.university.example.Persona.StudentProfile;
+import info5100.university.example.Persona.UserAccount;
+import java.awt.CardLayout;
+import java.text.SimpleDateFormat;
 
+import javax.swing.*;
+import java.util.*;
+import javax.swing.table.DefaultTableModel;
 /**
  *
- * @author Srija
+ * @author Vaishu
  */
 public class PayTuitionJPanel extends javax.swing.JPanel {
 
-    /**
-     * Creates new form PayTuitionJPanel
-     */
+    // --- add these fields ---
+    private UniversityContext ctx;
+    private JPanel cardPanel;
+    private UserAccount account;
+
+    // Simple in-memory ledger for this panel instance
+    private final List<Txn> ledger = new ArrayList<>();
+
     public PayTuitionJPanel() {
         initComponents();
+    }
+
+    public PayTuitionJPanel(UniversityContext ctx, JPanel cardPanel, UserAccount account) {
+        this(); // initComponents()
+        this.ctx = ctx;
+        this.cardPanel = cardPanel;
+        this.account = account;
+
+        // normalize term list (keep your existing widget)
+        cmbSemester.removeAllItems();
+        cmbSemester.addItem("Semester 1");
+        cmbSemester.addItem("Semester 2");
+        cmbSemester.addItem("Semester 3");
+        cmbSemester.addItem("Semester 4");
+
+        // respond to term change → recompute dues/balances
+        cmbSemester.addActionListener(e -> refreshAll()); // <-- added
+
+        // light header fill
+        StudentProfile sp = student();
+        if (sp != null) {
+            try { txtStudentId.setText(S(sp.getPerson().getPersonId())); } catch (Throwable ignore) {}
+            try { txtStudentName.setText(S(sp.getPerson().getName())); }   catch (Throwable ignore) {}
+        }
+
+        refreshAll();
     }
 
     /**
@@ -26,19 +71,436 @@ public class PayTuitionJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        cmbSemester = new javax.swing.JComboBox<>();
+        lblStudentId = new javax.swing.JLabel();
+        btnRefresh = new javax.swing.JButton();
+        scrHistory = new javax.swing.JScrollPane();
+        tblHistory = new javax.swing.JTable();
+        jLabel1 = new javax.swing.JLabel();
+        lblSemester = new javax.swing.JLabel();
+        btnBack = new javax.swing.JButton();
+        txtStudentId = new javax.swing.JTextField();
+        lblStudentName = new javax.swing.JLabel();
+        txtStudentName = new javax.swing.JTextField();
+        jPanel2 = new javax.swing.JPanel();
+        lblCurrentBalance = new javax.swing.JLabel();
+        lblTermDue = new javax.swing.JLabel();
+        lblOutstanding = new javax.swing.JLabel();
+        txtOutstanding = new javax.swing.JTextField();
+        txtTermDue = new javax.swing.JTextField();
+        txtCurrentBalance = new javax.swing.JTextField();
+        jPanel3 = new javax.swing.JPanel();
+        lblPayAmount = new javax.swing.JLabel();
+        txtPayAmount = new javax.swing.JTextField();
+        btnPay = new javax.swing.JButton();
+        btnViewReceipt = new javax.swing.JButton();
+
+        setBackground(new java.awt.Color(0, 204, 204));
+
+        cmbSemester.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
+        lblStudentId.setText("Student ID");
+
+        btnRefresh.setText("Refresh");
+        btnRefresh.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRefreshActionPerformed(evt);
+            }
+        });
+
+        tblHistory.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "Date", "Term", "Description", "Amount ", "Balance", "After", "Status"
+            }
+        ));
+        tblHistory.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        scrHistory.setViewportView(tblHistory);
+
+        jLabel1.setFont(new java.awt.Font("Helvetica Neue", 0, 20)); // NOI18N
+        jLabel1.setText("Pay Tuition");
+
+        lblSemester.setText("Semester");
+
+        btnBack.setText("<<< Back");
+        btnBack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBackActionPerformed(evt);
+            }
+        });
+
+        txtStudentId.setEnabled(false);
+
+        lblStudentName.setText("Student Name");
+
+        txtStudentName.setEnabled(false);
+
+        jPanel2.setBackground(new java.awt.Color(0, 204, 204));
+
+        lblCurrentBalance.setText("Current Balance");
+
+        lblTermDue.setText("Due");
+
+        lblOutstanding.setText("Outstanding");
+
+        txtOutstanding.setEnabled(false);
+
+        txtTermDue.setEnabled(false);
+
+        txtCurrentBalance.setEnabled(false);
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(19, 19, 19)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(lblOutstanding)
+                    .addComponent(lblTermDue)
+                    .addComponent(lblCurrentBalance))
+                .addGap(60, 60, 60)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txtTermDue, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtCurrentBalance, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtOutstanding, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(110, Short.MAX_VALUE))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(28, 28, 28)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblCurrentBalance)
+                    .addComponent(txtCurrentBalance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblTermDue)
+                    .addComponent(txtTermDue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(21, 21, 21)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblOutstanding)
+                    .addComponent(txtOutstanding, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(25, Short.MAX_VALUE))
+        );
+
+        jPanel3.setBackground(new java.awt.Color(0, 204, 204));
+
+        lblPayAmount.setText("Amount");
+
+        txtPayAmount.setEnabled(false);
+
+        btnPay.setText("Pay");
+        btnPay.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPayActionPerformed(evt);
+            }
+        });
+
+        btnViewReceipt.setText("View Receipt ");
+        btnViewReceipt.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnViewReceiptActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(46, 46, 46)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(lblPayAmount)
+                        .addGap(35, 35, 35)
+                        .addComponent(txtPayAmount, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(btnPay, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnViewReceipt, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addContainerGap(135, Short.MAX_VALUE))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(28, 28, 28)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblPayAmount)
+                    .addComponent(txtPayAmount, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(btnPay)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnViewReceipt)
+                .addContainerGap(34, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(21, 21, 21)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(lblStudentId)
+                            .addGap(18, 18, 18)
+                            .addComponent(txtStudentId, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(btnBack)
+                            .addGap(18, 18, 18)
+                            .addComponent(btnRefresh)
+                            .addGap(203, 203, 203)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(36, 36, 36)
+                        .addComponent(lblSemester)
+                        .addGap(29, 29, 29)
+                        .addComponent(cmbSemester, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(328, 328, 328)
+                        .addComponent(lblStudentName)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(txtStudentName, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(93, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(scrHistory)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(33, 33, 33))
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addGap(55, 55, 55)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(442, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(17, 17, 17)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(btnBack)
+                    .addComponent(btnRefresh))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblSemester)
+                    .addComponent(cmbSemester, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtStudentId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblStudentId)
+                    .addComponent(txtStudentName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblStudentName))
+                .addGap(39, 39, 39)
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(26, 26, 26)
+                .addComponent(scrHistory, javax.swing.GroupLayout.PREFERRED_SIZE, 193, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(70, Short.MAX_VALUE))
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addGap(120, 120, 120)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(292, Short.MAX_VALUE)))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRefreshActionPerformed
+refreshAll();     
+// TODO add your handling code here:
+    }//GEN-LAST:event_btnRefreshActionPerformed
 
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+    if (cardPanel != null && cardPanel.getLayout() instanceof java.awt.CardLayout) {
+            ((java.awt.CardLayout) cardPanel.getLayout()).previous(cardPanel);
+        }
+    }//GEN-LAST:event_btnBackActionPerformed
+
+    private void btnViewReceiptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnViewReceiptActionPerformed
+        // TODO add your handling code here:
+        if (ledger.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No payments yet.");
+            return;
+        }
+        Txn last = ledger.get(ledger.size()-1);
+        JOptionPane.showMessageDialog(
+                this,
+                "Receipt\n\nDate: " + last.dateStr() +
+                "\nTerm: " + last.term +
+                "\nAmount: $" + money(last.amount) +
+                "\nDescription: " + last.desc,
+                "Receipt", JOptionPane.INFORMATION_MESSAGE
+        );
+    }//GEN-LAST:event_btnViewReceiptActionPerformed
+
+    private void btnPayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPayActionPerformed
+ double due = toDouble(txtTermDue.getText());
+        if (due <= 0){
+            JOptionPane.showMessageDialog(this, "Nothing due for " + term() + ".");
+            return;
+        }
+        double amt = toDouble(txtPayAmount.getText());
+        if (amt <= 0){
+            JOptionPane.showMessageDialog(this, "Enter an amount > 0.");
+            return;
+        }
+        if (amt > due){
+            int c = JOptionPane.showConfirmDialog(this,
+                    "Amount exceeds term due ($" + money(due) + "). Apply full payment anyway?",
+                    "Confirm", JOptionPane.YES_NO_OPTION);
+            if (c != JOptionPane.YES_OPTION) return;
+        }
+
+        // record payment for the selected term
+        ledger.add(new Txn(new Date(), term(), "Tuition Payment", amt));
+
+        JOptionPane.showMessageDialog(this, "Payment of $" + money(amt) + " applied to " + term() + ".");
+        txtPayAmount.setText("");
+        refreshAll();       // TODO add your handling code here:
+    }//GEN-LAST:event_btnPayActionPerformed
+
+ // ---------- tiny helpers ----------
+    private static String S(Object v){ return v==null ? "" : String.valueOf(v); }
+    private String term(){ Object t=cmbSemester.getSelectedItem(); return t==null?"Semester 1":t.toString(); }
+    private static String money(double x){ return String.format(Locale.US,"%.2f",x); }
+    private static double toDouble(String s){ try{ return Double.parseDouble(s.trim()); }catch(Exception e){ return 0.0; } }
+
+    private StudentProfile student(){
+        try{
+            if (account==null || ctx==null) return null;
+            Person p = account.getPerson(); if (p==null) return null;
+
+            StudentDirectory dir = ctx.getDepartment().getStudentDirectory();
+            List<StudentProfile> list = null;
+            try { list = dir.getStudentlist(); } catch (Throwable ignore) {}
+            if (list == null) { try { list = dir.getStudentList(); } catch (Throwable ignore) {} }
+            if (list == null) list = new ArrayList<>();
+            for (StudentProfile sp : list){
+                try{
+                    if (sp.getPerson()==p) return sp;
+                    if (sp.getPerson()!=null && p.getPersonId()!=null &&
+                        p.getPersonId().equals(sp.getPerson().getPersonId())) return sp;
+                }catch(Throwable ignore){}
+            }
+            try { return dir.findStudent(p.getPersonId()); } catch (Throwable ignore) {}
+            try { return dir.findStudent(account.getUserLoginName()); } catch (Throwable ignore) {}
+        }catch(Throwable ignore){}
+        return null;
+    }
+
+    // Sum of list price of all enrolled courses in a given term.
+    private double tuitionForTerm(StudentProfile sp, String term){
+        if (sp==null || term==null) return 0.0;
+        try{
+            CourseLoad cl = sp.getCourseLoadBySemester(term);
+            if (cl==null) return 0.0;
+            double sum = 0.0;
+            for (SeatAssignment sa : cl.getSeatAssignments()){
+                CourseOffer co = sa.getCourseOffer();
+                sum += priceOf(co);
+            }
+            return sum;
+        }catch(Throwable ignore){ return 0.0; }
+    }
+
+    // Price from Course (handles multiple seed APIs)
+    private double priceOf(CourseOffer co){
+        if (co==null) return 0.0;
+        try { return co.getSubjectCourse().getCoursePrice(); } catch(Throwable ignore){}
+        try { return (double) co.getCourse().getClass().getMethod("getCoursePrice").invoke(co.getCourse()); } catch(Throwable ignore){}
+        try { return (int)    co.getCourse().getClass().getMethod("getCoursePrice").invoke(co.getCourse()); } catch(Throwable ignore){}
+        return 0.0;
+    }
+
+    private double paymentsForTerm(String term){
+        double s=0.0; for (Txn t: ledger) if (term.equals(t.term)) s+=t.amount; return s;
+    }
+    private double paymentsTotal(){
+        double s=0.0; for (Txn t: ledger) s+=t.amount; return s;
+    }
+
+    private void refreshAll(){
+        StudentProfile sp = student();
+
+        String t = term();
+        double termTuition = tuitionForTerm(sp, t);
+        double termPaid    = paymentsForTerm(t);
+        double termDue     = Math.max(0.0, termTuition - termPaid);
+
+        // Outstanding across all terms
+        double allTuition = 0.0;
+        for (int i=1;i<=4;i++){
+            allTuition += tuitionForTerm(sp, "Semester " + i);
+        }
+        double outstanding = Math.max(0.0, allTuition - paymentsTotal());
+
+        txtCurrentBalance.setText(money(outstanding));
+        txtTermDue.setText(money(termDue));
+        txtOutstanding.setText(money(outstanding));
+
+        txtPayAmount.setEnabled(termDue > 0.0);
+        btnPay.setEnabled(termDue > 0.0);
+
+        loadHistoryTable(allTuition);   // <-- recompute balances per row from full tuition
+    }
+
+    // Render history with correct Balance/After using full tuition as baseline
+    private void loadHistoryTable(double allTuition){
+        DefaultTableModel m = new DefaultTableModel(
+                new Object[]{"Date","Term","Description","Amount","Balance","After","Status"},0
+        ){ public boolean isCellEditable(int r,int c){ return false; } };
+
+        // chronological order
+        List<Txn> copy = new ArrayList<>(ledger);
+        copy.sort(Comparator.comparing(tx -> tx.when));
+
+        double paidSoFar = 0.0;
+        for (Txn tx : copy){
+            double before = Math.max(0.0, allTuition - paidSoFar);
+            paidSoFar += tx.amount;
+            double after  = Math.max(0.0, allTuition - paidSoFar);
+
+            m.addRow(new Object[]{
+                    tx.dateStr(), tx.term, tx.desc,
+                    money(tx.amount), money(before), money(after), "Applied"
+            });
+        }
+        tblHistory.setModel(m);
+    }
+
+    private static class Txn{
+        final Date when; final String term; final String desc; final double amount;
+        Txn(Date d, String t, String desc, double a){ this.when=d; this.term=t; this.desc=desc; this.amount=a; }
+        String dateStr(){ return new SimpleDateFormat("yyyy-MM-dd").format(when); }
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnBack;
+    private javax.swing.JButton btnPay;
+    private javax.swing.JButton btnRefresh;
+    private javax.swing.JButton btnViewReceipt;
+    private javax.swing.JComboBox<String> cmbSemester;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JLabel lblCurrentBalance;
+    private javax.swing.JLabel lblOutstanding;
+    private javax.swing.JLabel lblPayAmount;
+    private javax.swing.JLabel lblSemester;
+    private javax.swing.JLabel lblStudentId;
+    private javax.swing.JLabel lblStudentName;
+    private javax.swing.JLabel lblTermDue;
+    private javax.swing.JScrollPane scrHistory;
+    private javax.swing.JTable tblHistory;
+    private javax.swing.JTextField txtCurrentBalance;
+    private javax.swing.JTextField txtOutstanding;
+    private javax.swing.JTextField txtPayAmount;
+    private javax.swing.JTextField txtStudentId;
+    private javax.swing.JTextField txtStudentName;
+    private javax.swing.JTextField txtTermDue;
     // End of variables declaration//GEN-END:variables
 }

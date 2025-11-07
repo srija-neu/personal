@@ -3,20 +3,114 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package info5100.university.example.Ui.StudentRole;
+import info5100.university.example.Coursework.AssignmentSubmission;
+import java.awt.CardLayout;
+import java.io.File;
+import java.time.LocalDateTime;
+import javax.swing.table.DefaultTableModel;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import info5100.university.example.Coursework.AssignmentSubmission;
+import info5100.university.example.Context.UniversityContext;
+import info5100.university.example.Persona.*;
+import info5100.university.example.CourseSchedule.*;
+import java.awt.*;
+import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
- * @author Srija
+ * @author Vaishu
  */
 public class CourseWorkJPanel extends javax.swing.JPanel {
+private final List<AssignmentSubmission> submissions = new ArrayList<>();
+    private DefaultTableModel dtm;
+    private final DateTimeFormatter TS = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private StudentProfile currentStudent = null;
+    private final JFileChooser chooser = new JFileChooser();
+    private UniversityContext ctx;
+    private JPanel cardPanel;
+    private UserAccount account;
 
-    /**
-     * Creates new form CourseWorkJPanel
-     */
-    public CourseWorkJPanel() {
+    public CourseWorkJPanel(UniversityContext ctx, JPanel cardPanel, UserAccount account) {
         initComponents();
+        this.ctx = ctx;
+        this.cardPanel = cardPanel;
+        this.account = account;
+        initOnce();
     }
 
+    private void initOnce() {
+        txtFilePath.setEditable(false);
+        dtm = (DefaultTableModel) tblAssignments.getModel();
+        dtm.setRowCount(0);
+        tblAssignments.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        setActionButtonsEnabled(false);
+
+        tblAssignments.getSelectionModel().addListSelectionListener(e -> {
+            boolean hasSelection = tblAssignments.getSelectedRow() >= 0;
+            setActionButtonsEnabled(hasSelection);
+        });
+
+        populateCoursesForTerm();
+        reloadAssignmentsTable();
+    }
+
+    private void setActionButtonsEnabled(boolean b) {
+        btnBrowse.setEnabled(b);
+        btnSubmit.setEnabled(b);
+        btnResubmit.setEnabled(b);
+    }
+
+    private void populateCoursesForTerm() {
+        cmbCourse.removeAllItems();
+        StudentProfile sp = student();
+        if (sp == null) return;
+        String term = (String) cmbSemester.getSelectedItem();
+        CourseLoad cl = sp.getCourseLoadBySemester(term);
+        if (cl == null) return;
+        for (SeatAssignment sa : cl.getSeatAssignments()) {
+            CourseOffer co = sa.getCourseOffer();
+            if (co != null) cmbCourse.addItem(co.getCourseNumber() + " - " + co.getCourseName());
+        }
+    }
+
+    private StudentProfile student() {
+        if (currentStudent != null) return currentStudent;
+        if (ctx == null || account == null) return null;
+        try {
+            StudentDirectory dir = ctx.getDepartment().getStudentDirectory();
+            Person p = account.getPerson();
+            for (StudentProfile s : dir.getStudentList())
+                if (s.getPerson() == p) return currentStudent = s;
+        } catch (Throwable ignore) {}
+        return null;
+    }
+
+    private String selectedCourseId() {
+        Object sel = cmbCourse.getSelectedItem();
+        if (sel == null) return null;
+        String s = sel.toString();
+        int idx = s.indexOf(" - ");
+        return (idx > 0) ? s.substring(0, idx).trim() : s.trim();
+    }
+
+    private String selectedTerm() {
+        Object t = cmbSemester.getSelectedItem();
+        return t == null ? null : t.toString();
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -26,19 +120,291 @@ public class CourseWorkJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jLabel1 = new javax.swing.JLabel();
+        lblSemester = new javax.swing.JLabel();
+        cmbSemester = new javax.swing.JComboBox<>();
+        jLabel2 = new javax.swing.JLabel();
+        cmbCourse = new javax.swing.JComboBox<>();
+        btnRefresh = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblAssignments = new javax.swing.JTable();
+        btnBrowse = new javax.swing.JButton();
+        btnSubmit = new javax.swing.JButton();
+        btnBack = new javax.swing.JButton();
+        lblFile = new javax.swing.JLabel();
+        txtFilePath = new javax.swing.JTextField();
+        btnResubmit = new javax.swing.JButton();
+
+        setBackground(new java.awt.Color(0, 204, 204));
+
+        jLabel1.setFont(new java.awt.Font("Helvetica Neue", 0, 20)); // NOI18N
+        jLabel1.setText("Course Work");
+
+        lblSemester.setText("Semester");
+
+        cmbSemester.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
+        jLabel2.setText("Course");
+
+        btnRefresh.setText("Refresh");
+        btnRefresh.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRefreshActionPerformed(evt);
+            }
+        });
+
+        tblAssignments.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
+            },
+            new String [] {
+                "Assignment", "Due Date", "Status", "Score", "Submitted At "
+            }
+        ));
+        tblAssignments.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        jScrollPane1.setViewportView(tblAssignments);
+
+        btnBrowse.setText("Browse");
+        btnBrowse.setEnabled(false);
+        btnBrowse.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBrowseActionPerformed(evt);
+            }
+        });
+
+        btnSubmit.setText("Submit");
+        btnSubmit.setEnabled(false);
+        btnSubmit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSubmitActionPerformed(evt);
+            }
+        });
+
+        btnBack.setText("<<< Back");
+        btnBack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBackActionPerformed(evt);
+            }
+        });
+
+        lblFile.setText("File");
+
+        txtFilePath.setEditable(false);
+
+        btnResubmit.setText("Resubmit");
+        btnResubmit.setEnabled(false);
+        btnResubmit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnResubmitActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(21, 21, 21)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(btnBack)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(14, 14, 14)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(lblSemester)
+                                    .addComponent(jLabel2))
+                                .addGap(23, 23, 23)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(cmbSemester, 0, 122, Short.MAX_VALUE)
+                                    .addComponent(cmbCourse, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(28, 28, 28)
+                                .addComponent(btnRefresh))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(97, 97, 97)
+                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 748, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblFile, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(txtFilePath, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(41, 41, 41)
+                                .addComponent(btnBrowse)
+                                .addGap(931, 931, 931)
+                                .addComponent(btnSubmit)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(btnResubmit)))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(17, 17, 17)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(btnBack))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblSemester)
+                    .addComponent(cmbSemester, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnRefresh))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(cmbCourse, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 193, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(39, 39, 39)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblFile)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(txtFilePath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnBrowse)
+                        .addComponent(btnSubmit)
+                        .addComponent(btnResubmit)))
+                .addContainerGap(124, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+      if (cardPanel != null && cardPanel.getLayout() instanceof java.awt.CardLayout) {
+            ((java.awt.CardLayout) cardPanel.getLayout()).previous(cardPanel);
+        }
+    }//GEN-LAST:event_btnBackActionPerformed
 
+    private void btnRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRefreshActionPerformed
+
+    populateCoursesForTerm();
+    reloadAssignmentsTable();
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnRefreshActionPerformed
+
+    private void btnBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowseActionPerformed
+        // TODO add your handling code here:
+  
+    if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION)
+            txtFilePath.setText(chooser.getSelectedFile().getAbsolutePath());
+
+    }//GEN-LAST:event_btnBrowseActionPerformed
+
+    private void btnSubmitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSubmitActionPerformed
+        // TODO add your handling code here:
+    int row = tblAssignments.getSelectedRow();
+        if (row < 0) { JOptionPane.showMessageDialog(this,"Select assignment."); return; }
+        String path = txtFilePath.getText().trim();
+        if (path.isEmpty()) { JOptionPane.showMessageDialog(this,"Choose file."); return; }
+
+        String term = selectedTerm(), cid = selectedCourseId();
+        String name = valueAt(row, 0);
+        AssignmentSubmission s = upsertSubmission(name, term, cid);
+        s.setFilePath(path); s.setStatus("Submitted"); s.setSubmittedAt(LocalDateTime.now());
+
+        dtm.setValueAt("Submitted", row, 2);
+        dtm.setValueAt(s.getSubmittedAt().format(TS), row, 4);
+        JOptionPane.showMessageDialog(this,"Submitted.");
+
+    }//GEN-LAST:event_btnSubmitActionPerformed
+
+    private void btnResubmitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResubmitActionPerformed
+        // TODO add your handling code here:
+        int row = tblAssignments.getSelectedRow();
+        if (row < 0) return;
+        String path = txtFilePath.getText().trim();
+        if (path.isEmpty()) return;
+
+        String term = selectedTerm(), cid = selectedCourseId();
+        String name = valueAt(row, 0);
+        AssignmentSubmission s = upsertSubmission(name, term, cid);
+        s.setFilePath(path); s.setStatus("Resubmitted"); s.setSubmittedAt(LocalDateTime.now());
+        dtm.setValueAt("Resubmitted", row, 2);
+        dtm.setValueAt(s.getSubmittedAt().format(TS), row, 4);
+        JOptionPane.showMessageDialog(this,"Resubmitted.");
+    }//GEN-LAST:event_btnResubmitActionPerformed
+
+    private String valueAt(int r,int c){ Object v=dtm.getValueAt(r,c); return v==null?"":v.toString(); }
+
+private AssignmentSubmission upsertSubmission(String a, String t, String c) {
+    // find existing
+    for (AssignmentSubmission s: submissions)
+            if (Objects.equals(s.getAssignment(),a)&&Objects.equals(s.getTerm(),t)&&Objects.equals(s.getCourseId(),c))
+                return s;
+        AssignmentSubmission s=new AssignmentSubmission(); s.setAssignment(a); s.setTerm(t); s.setCourseId(c);
+        if (student()!=null) s.setStudentId(student().getPerson().getUniversityId());
+        submissions.add(s); return s;
+}
+
+private boolean eq(String a, String b) {
+    return (a == null && b == null) || (a != null && a.equals(b));
+}
+    
+    
+    
+    private void reloadAssignmentsTable() {
+        
+        dtm.setRowCount(0);
+        dtm.addRow(new Object[]{"Assignment 1","","","",""});
+        dtm.addRow(new Object[]{"Assignment 2","","","",""});
+        dtm.addRow(new Object[]{"Assignment 3","","","",""});
+        setActionButtonsEnabled(false);
+    /*dtm.setRowCount(0);
+    String term = selectedTerm();
+    String cid  = selectedCourseId();
+    if (term == null || cid == null) return;
+
+    boolean any = false;
+    for (AssignmentSubmission s : submissions) {
+        if (eq(term, s.getTerm()) && eq(cid, s.getCourseId())) {
+            any = true;
+            dtm.addRow(new Object[]{
+                s.getAssignment(),
+                "", // Due Date (you can fill from your model if you have it)
+                s.getStatus() == null ? "" : s.getStatus(),
+                s.getScore() == null ? "" : s.getScore(),
+                s.getSubmittedAt() == null ? "" : s.getSubmittedAt().format(TS)
+            });
+        }
+    }
+    if (!any) {
+        // seed placeholder rows so user can select & submit
+        dtm.addRow(new Object[]{"Assignment 1", "", "", "", ""});
+        dtm.addRow(new Object[]{"Assignment 2", "", "", "", ""});
+        dtm.addRow(new Object[]{"Assignment 3", "", "", "", ""});
+    }
+
+    // initial: disable action buttons until a row is selected
+    setActionButtonsEnabled(false);*/
+  
+}
+
+
+private void ensureOneRow() {
+    if (dtm.getRowCount() == 0) {
+        dtm.addRow(new Object[]{"Assignment", "", "", "", ""});
+        tblAssignments.setRowSelectionInterval(0, 0);
+    }
+}
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnBack;
+    private javax.swing.JButton btnBrowse;
+    private javax.swing.JButton btnRefresh;
+    private javax.swing.JButton btnResubmit;
+    private javax.swing.JButton btnSubmit;
+    private javax.swing.JComboBox<String> cmbCourse;
+    private javax.swing.JComboBox<String> cmbSemester;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lblFile;
+    private javax.swing.JLabel lblSemester;
+    private javax.swing.JTable tblAssignments;
+    private javax.swing.JTextField txtFilePath;
     // End of variables declaration//GEN-END:variables
 }
