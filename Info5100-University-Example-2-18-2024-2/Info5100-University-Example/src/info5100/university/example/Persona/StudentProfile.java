@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package info5100.university.example.Persona;
 
 import info5100.university.example.CourseSchedule.CourseLoad;
@@ -10,116 +5,138 @@ import info5100.university.example.CourseSchedule.SeatAssignment;
 import info5100.university.example.Persona.EmploymentHistory.EmploymentHistroy;
 import java.util.ArrayList;
 
-/**
- *
- * @author kal bugrara
- */
+/** Student profile model with UI-friendly fields and compat aliases. */
 public class StudentProfile {
 
-    Person person;
-    Transcript transcript;
-    EmploymentHistroy employmenthistory;
-    
-    private String academicStatus;          // e.g., "Active", "Probation", "Graduated"
+    // Core relations
+    private Person person;
+    private Transcript transcript;
+    private EmploymentHistroy employmenthistory;
     private StudentAccount account;
 
+    // Status
+    private String academicStatus;                 // "Active", "Probation", ...
+
+    // UI/display-oriented attributes
+    private String program;                        // e.g., "Information Systems"
+    private String major;                          // alias some seeds use
+    private String departmentName;                 // e.g., "Khoury College"
+    private String degree;                         // e.g., "Masters"
+    private Double debitAmount;                    // outstanding balance (optional)
+
+    // -------------------- Constructors --------------------
+
     public StudentProfile(Person p) {
+        this.person = p;
+        this.transcript = new Transcript(this);
+        this.employmenthistory = new EmploymentHistroy();
+        this.account = new StudentAccount();
 
-        person = p;
-        transcript = new Transcript(this);
-        employmenthistory = new EmploymentHistroy();
-        academicStatus = "Active";          // sensible default
-        account = new StudentAccount();
+        this.academicStatus = "Active";
     }
-    
+
+    // -------------------- Identity / Matching --------------------
+
+    /** Match by University ID (null-safe). */
     public boolean isMatch(String id) {
-    if (person == null || id == null) return false;
-    String uid = person.getUniversityId();
-    return uid != null && uid.equalsIgnoreCase(id.trim());
-}
-
-    /*public boolean isMatch(String id) {
-        return person.getPersonId().equals(id);
-    }*/
-
-    public Transcript getTranscript() {
-        return transcript;
+        if (person == null || id == null) return false;
+        String uid = person.getUniversityId();
+        return uid != null && uid.equalsIgnoreCase(id.trim());
     }
+
+    // -------------------- Transcript / Courses --------------------
+
+    public Transcript getTranscript() { return transcript; }
 
     public CourseLoad getCourseLoadBySemester(String semester) {
-
-        CourseLoad cl = transcript.getCourseLoadBySemester(semester);
-    if (cl != null && cl.getStudentProfile() == null) {
-        cl.setStudentProfile(this);
+        return transcript == null ? null : transcript.getCourseLoadBySemester(semester);
     }
-    return cl;
-        //return transcript.getCourseLoadBySemester(semester);
+
+    /** Compat alias used by some panels/templates. */
+    public CourseLoad getCourseLoad(String term) {
+        return getCourseLoadBySemester(term);
     }
 
     public CourseLoad getCurrentCourseLoad() {
-
-        CourseLoad cl = transcript.getCurrentCourseLoad();
-    if (cl != null && cl.getStudentProfile() == null) {
-        cl.setStudentProfile(this);
-    }
-    return cl;
-        //return transcript.getCurrentCourseLoad();
+        return transcript == null ? null : transcript.getCurrentCourseLoad();
     }
 
-    public CourseLoad newCourseLoad(String s) {
-        CourseLoad cl = transcript.newCourseLoad(s);
-    if (cl != null) {
-        cl.setStudentProfile(this);
-    }
-    return cl;
-        /*CourseLoad cl=transcript.newCourseLoad(s);
-        cl.setStudentProfile(this);
-        return cl;*/
-        //return transcript.newCourseLoad(s);
+    public CourseLoad newCourseLoad(String semester) {
+        return transcript == null ? null : transcript.newCourseLoad(semester);
     }
 
     public ArrayList<SeatAssignment> getCourseList() {
-
-        return transcript.getCourseList();
-
-    }
-    public Person getPerson() {
-        return person;
+        return transcript == null ? new ArrayList<>() : transcript.getCourseList();
     }
 
-    public void setPerson(Person p) {
-        this.person = p;
-    }
+    // -------------------- Person bridge --------------------
 
+    public Person getPerson() { return person; }
+    public void setPerson(Person p) { this.person = p; }
+
+    /** Preferred external ID for a student in this project. */
     public String getStudentId() {
-        return (person != null) ? person.getUniversityId() : null;
+        return person == null ? null : person.getUniversityId();
     }
 
     public String getName() {
-        return (person != null) ? person.getName() : null;
+        if (person == null) return null;
+        String n = person.getName();
+        return (n != null && !n.isBlank())
+               ? n
+               : ((person.getFirstName() != null ? person.getFirstName() : "") +
+                  (person.getLastName() != null ? " " + person.getLastName() : "")).trim();
     }
 
-    public String getAcademicStatus() {
-        return academicStatus;
+    // -------------------- Status / Accounts --------------------
+
+    public String getAcademicStatus() { return academicStatus; }
+    public void setAcademicStatus(String academicStatus) { this.academicStatus = academicStatus; }
+
+    public StudentAccount getAccount() { return account; }
+    public void setAccount(StudentAccount account) { this.account = account; }
+
+    // -------------------- Program / Department / Degree --------------------
+    // Program & Major kept as aliases so either can be used by different templates.
+
+    public String getProgram() { return program != null ? program : major; }
+    public void setProgram(String program) {
+        this.program = (program == null || program.isBlank()) ? null : program.trim();
     }
 
-    public void setAcademicStatus(String academicStatus) {
-        this.academicStatus = academicStatus;
+    public String getMajor() { return major != null ? major : program; }
+    public void setMajor(String major) {
+        this.major = (major == null || major.isBlank()) ? null : major.trim();
     }
 
-    public StudentAccount getAccount() {
-        return account;
+    /** Display name of the department for UI (kept to match panel code). */
+    public String getDepartment() { return departmentName; }
+
+    public String getDepartmentName() { return departmentName; }
+
+    public void setDepartmentName(String name) {
+        this.departmentName = (name == null || name.isBlank()) ? null : name.trim();
     }
 
-    public void setAccount(StudentAccount account) {
-        this.account = account;
+    /** Compat alias — your panel calls setDepartment(String). */
+    public void setDepartment(String name) { setDepartmentName(name); }
+
+    public String getDegree() { return degree; }
+    public void setDegree(String degree) {
+        this.degree = (degree == null || degree.isBlank()) ? null : degree.trim();
     }
-    
-    
+
+    // -------------------- Optional finance helper --------------------
+
+    public Double getDebitAmount() { return debitAmount; }
+    public double getDebitAmountOrZero() { return debitAmount == null ? 0.0 : debitAmount; }
+    public void setDebitAmount(Double amt) { this.debitAmount = amt; }
+
+    // -------------------- Misc --------------------
 
     @Override
     public String toString() {
         String n = getName();
-        return (n != null && n.length() > 0) ? n : "Student";
+        return (n != null && !n.isBlank()) ? n : "Student";
     }
 }

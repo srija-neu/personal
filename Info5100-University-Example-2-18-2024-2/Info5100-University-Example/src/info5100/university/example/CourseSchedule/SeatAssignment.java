@@ -58,12 +58,6 @@ public String getLetterGrade(){
     // If you need reverse mapping later, add a util for that. For now, return numeric as string.
     return String.valueOf(grade);
 }
-
-public CourseLoad getCourseload(){
-    return courseload;
-}
-
-
     
     public float getGradePoints() { return grade; }
 public void setGradePoints(float gp) { this.grade = gp; }

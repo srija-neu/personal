@@ -22,6 +22,7 @@ public class UserAccount {
     private String role;     // "Admin", "Faculty", "Student", "Registrar"
     private boolean active = true;
     private Person person;
+    private StudentProfile studentProfile;
     
     public UserAccount(String userLoginName, String password, Person person, String role){
         this.userLoginName = userLoginName;
@@ -46,6 +47,8 @@ public class UserAccount {
     public void setActive(boolean v) { active = v; }
     public Person getPerson() { return person; }
     public void setPerson(Person p) { person = p; }
+    public StudentProfile getStudentProfile() { return studentProfile; }
+public void setStudentProfile(StudentProfile sp) { this.studentProfile = sp; }
 
 @Override
 public String toString() { return userLoginName; }

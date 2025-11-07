@@ -22,10 +22,6 @@ public class Course {
         credits = ch;
 
     }
-    
-    public String getName() {
-    return name;
-}
 
     public String getCOurseNumber() {
         return number;

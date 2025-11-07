@@ -3,20 +3,57 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package info5100.university.example.Ui.StudentRole;
+import info5100.university.example.Context.UniversityContext;
+import info5100.university.example.CourseSchedule.CourseOffer;
+import info5100.university.example.CourseSchedule.SeatAssignment;
+import info5100.university.example.Persona.Person;
+import info5100.university.example.Persona.StudentProfile;
+import info5100.university.example.Persona.UserAccount;
+import info5100.university.example.Persona.StudentDirectory;
 
+import java.awt.CardLayout;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.table.DefaultTableModel;
 /**
  *
- * @author Srija
+ * @author Vaishu
  */
 public class GraduationAuditJPanel extends javax.swing.JPanel {
+    private UniversityContext ctx;
+    private JPanel            cardPanel;
+    private UserAccount       account;
 
-    /**
-     * Creates new form GraduationAuditJPanel
-     */
+    private static final int    TARGET_CREDITS = 32;
+    private static final double TARGET_GPA     = 3.0;
+
     public GraduationAuditJPanel() {
         initComponents();
     }
 
+    public GraduationAuditJPanel(UniversityContext ctx, JPanel cardPanel, UserAccount account) {
+        this(); // initComponents
+        this.ctx = ctx;
+        this.cardPanel = cardPanel;
+        this.account = account;
+
+        StudentProfile sp = student();
+        if (sp != null) {
+            try {
+                Person p = sp.getPerson();
+                lblStudentName.setText("Name: " + (p != null ? nz(p.getName()) : ""));
+                lblStudentId.setText("Student ID : " + (p != null ? nz(p.getPersonId()) : ""));
+            } catch (Exception ignore) {}
+        }
+        try {
+            lblProgram.setText("Program : " +
+                (ctx != null && ctx.getDepartment()!=null ? nz(ctx.getDepartment().getName()) : ""));
+        } catch (Exception ignore){}
+
+        lblReady.setText("Not Evaluated");
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -26,19 +63,460 @@ public class GraduationAuditJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        lblStudentId = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+        lblStudentName = new javax.swing.JLabel();
+        btnBack = new javax.swing.JButton();
+        btnRunAudit = new javax.swing.JButton();
+        lblOverallGpaValue = new javax.swing.JLabel();
+        lblTermGpaValue = new javax.swing.JLabel();
+        lblProgram = new javax.swing.JLabel();
+        lblOverallGpa = new javax.swing.JLabel();
+        pnlProgress1 = new javax.swing.JPanel();
+        jLabel4 = new javax.swing.JLabel();
+        lblCreditsEarned1 = new javax.swing.JLabel();
+        lblCreditsRemaining1 = new javax.swing.JLabel();
+        prgCredits1 = new javax.swing.JProgressBar();
+        lblCreditsRequired1 = new javax.swing.JLabel();
+        scrRequirements = new javax.swing.JScrollPane();
+        tblRequirements1 = new javax.swing.JTable();
+        scrInProgress = new javax.swing.JScrollPane();
+        tblInProgress1 = new javax.swing.JTable();
+        jLabel5 = new javax.swing.JLabel();
+        lblReady = new javax.swing.JLabel();
+
+        setBackground(new java.awt.Color(0, 204, 204));
+
+        lblStudentId.setText("Student ID :     ");
+
+        jLabel1.setFont(new java.awt.Font("Helvetica Neue", 0, 20)); // NOI18N
+        jLabel1.setText("Graduate Audit");
+
+        lblStudentName.setText("Name:    ");
+
+        btnBack.setText("<<< Back");
+        btnBack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBackActionPerformed(evt);
+            }
+        });
+
+        btnRunAudit.setText("Run Audit");
+        btnRunAudit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRunAuditActionPerformed(evt);
+            }
+        });
+
+        lblOverallGpaValue.setText("                   ");
+
+        lblTermGpaValue.setText("                ");
+
+        lblProgram.setText("Program :");
+
+        lblOverallGpa.setText("Overall GPA :");
+
+        pnlProgress1.setBackground(new java.awt.Color(0, 204, 204));
+
+        jLabel4.setFont(new java.awt.Font("Helvetica Neue", 0, 16)); // NOI18N
+        jLabel4.setText("Progress");
+
+        lblCreditsEarned1.setText("Credits Earned:   ");
+
+        lblCreditsRemaining1.setText("Credits Remaining:       ");
+
+        prgCredits1.setMaximum(32);
+
+        lblCreditsRequired1.setText("Credits Required:       ");
+
+        javax.swing.GroupLayout pnlProgress1Layout = new javax.swing.GroupLayout(pnlProgress1);
+        pnlProgress1.setLayout(pnlProgress1Layout);
+        pnlProgress1Layout.setHorizontalGroup(
+            pnlProgress1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlProgress1Layout.createSequentialGroup()
+                .addGroup(pnlProgress1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnlProgress1Layout.createSequentialGroup()
+                        .addGap(366, 366, 366)
+                        .addComponent(jLabel4))
+                    .addGroup(pnlProgress1Layout.createSequentialGroup()
+                        .addGap(15, 15, 15)
+                        .addGroup(pnlProgress1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblCreditsEarned1)
+                            .addComponent(lblCreditsRemaining1)
+                            .addComponent(lblCreditsRequired1)
+                            .addComponent(prgCredits1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(386, Short.MAX_VALUE))
+        );
+        pnlProgress1Layout.setVerticalGroup(
+            pnlProgress1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlProgress1Layout.createSequentialGroup()
+                .addGap(20, 20, 20)
+                .addComponent(jLabel4)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(prgCredits1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(lblCreditsEarned1)
+                .addGap(18, 18, 18)
+                .addComponent(lblCreditsRequired1)
+                .addGap(18, 18, 18)
+                .addComponent(lblCreditsRemaining1)
+                .addContainerGap(46, Short.MAX_VALUE))
+        );
+
+        tblRequirements1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
+            },
+            new String [] {
+                "Requirement", "Needed", "Earned", "Remaining", "Status"
+            }
+        ));
+        tblRequirements1.setColumnSelectionAllowed(true);
+        tblRequirements1.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        scrRequirements.setViewportView(tblRequirements1);
+        tblRequirements1.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+
+        tblInProgress1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
+            },
+            new String [] {
+                "Term", "Course ID", "Course Name", "Credits", "Status"
+            }
+        ));
+        scrInProgress.setViewportView(tblInProgress1);
+        tblInProgress1.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+
+        jLabel5.setFont(new java.awt.Font("Helvetica Neue", 0, 16)); // NOI18N
+        jLabel5.setText("Requirements");
+
+        lblReady.setText("Not Evaluated");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 18, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(lblStudentId)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(lblTermGpaValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(lblStudentName)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(lblOverallGpaValue, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addComponent(lblOverallGpa)
+                            .addComponent(lblProgram))
+                        .addContainerGap(661, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(pnlProgress1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(23, Short.MAX_VALUE))))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel5)
+                .addGap(386, 386, 386))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(114, 114, 114)
+                .addComponent(btnRunAudit)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(lblReady)
+                .addGap(232, 232, 232))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(scrInProgress, javax.swing.GroupLayout.PREFERRED_SIZE, 813, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(scrRequirements, javax.swing.GroupLayout.PREFERRED_SIZE, 807, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(btnBack)
+                    .addGap(247, 247, 247)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(349, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnRunAudit)
+                    .addComponent(lblReady))
+                .addGap(34, 34, 34)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblOverallGpaValue)
+                    .addComponent(lblStudentName))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblTermGpaValue)
+                    .addComponent(lblStudentId))
+                .addGap(12, 12, 12)
+                .addComponent(lblProgram)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(lblOverallGpa)
+                .addGap(4, 4, 4)
+                .addComponent(jLabel5)
+                .addGap(18, 18, 18)
+                .addComponent(scrRequirements, javax.swing.GroupLayout.PREFERRED_SIZE, 168, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(9, 9, 9)
+                .addComponent(pnlProgress1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(scrInProgress, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(90, Short.MAX_VALUE))
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jLabel1)
+                        .addComponent(btnBack))
+                    .addContainerGap(812, Short.MAX_VALUE)))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+if (cardPanel != null && cardPanel.getLayout() instanceof CardLayout) {
+            ((CardLayout) cardPanel.getLayout()).previous(cardPanel);
+        }
+    }//GEN-LAST:event_btnBackActionPerformed
+
+    private void btnRunAuditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRunAuditActionPerformed
+        // TODO add your handling code here:
+        runAudit();
+    }//GEN-LAST:event_btnRunAuditActionPerformed
+private void runAudit() {
+        StudentProfile sp = student();
+        if (sp == null) {
+            JOptionPane.showMessageDialog(this, "No student profile linked to this account.");
+            return;
+        }
+
+        double overallGpa = computeOverallGpa(sp);
+        lblOverallGpaValue.setText(String.format("%.2f", overallGpa));
+
+        int earned = 0;
+        List<RowInProgress> inProgress = new ArrayList<>();
+
+        List<SeatAssignment> all = new ArrayList<>();
+        try { all = sp.getTranscript().getCourseList(); } catch (Throwable ignore) {}
+        if (all == null) all = new ArrayList<>();
+
+        for (SeatAssignment sa : all) {
+            CourseOffer co = safeOffer(sa);
+            int cr = courseCreditsOf(co);
+            double score = numericScoreOf(sa);
+            if (score < 0) {
+                inProgress.add(new RowInProgress(termOf(sa), courseIdOf(co), courseNameOf(co), cr, "In Progress"));
+            } else {
+                String L = letterFromScore(score);
+                if (!"F".equals(L)) earned += cr;
+            }
+        }
+
+        int remaining = Math.max(0, TARGET_CREDITS - earned);
+
+        prgCredits1.setMaximum(TARGET_CREDITS);
+        prgCredits1.setValue(Math.min(earned, TARGET_CREDITS));
+        lblCreditsEarned1.setText("Credits Earned: " + earned);
+        lblCreditsRequired1.setText("Credits Required: " + TARGET_CREDITS);
+        lblCreditsRemaining1.setText("Credits Remaining: " + remaining);
+
+        DefaultTableModel req = (DefaultTableModel) tblRequirements1.getModel();
+        req.setRowCount(0);
+        req.addRow(new Object[]{ "Minimum Credits", TARGET_CREDITS, earned, remaining,
+                remaining == 0 ? "Met" : "In Progress" });
+        req.addRow(new Object[]{ "Minimum Overall GPA", String.format("%.2f", TARGET_GPA),
+                String.format("%.2f", overallGpa), "-", (overallGpa >= TARGET_GPA) ? "Met" : "Below Target" });
+
+        DefaultTableModel ip = (DefaultTableModel) tblInProgress1.getModel();
+        ip.setRowCount(0);
+        for (RowInProgress r : inProgress) {
+            ip.addRow(new Object[]{ r.term, r.courseId, r.courseName, r.credits, r.status });
+        }
+
+        boolean ready = (earned >= TARGET_CREDITS) && (overallGpa >= TARGET_GPA) && inProgress.isEmpty();
+        lblReady.setText(ready ? "Ready to Graduate" : "Not Ready");
+
+        JOptionPane.showMessageDialog(this, "Audit complete.");
+    }
+
+    private StudentProfile student() {
+        if (account == null || ctx == null) return null;
+        Person p = account.getPerson();
+        if (p == null) return null;
+
+        try {
+            StudentDirectory dir = ctx.getDepartment().getStudentDirectory();
+            List<StudentProfile> list = null;
+            try { list = dir.getStudentlist(); } catch (Throwable ignore) {}
+            if (list == null) { try { list = dir.getStudentList(); } catch (Throwable ignore) {} }
+            if (list == null) list = new ArrayList<>();
+
+            for (StudentProfile sp : list) {
+                try {
+                    if (sp.getPerson() == p) return sp;
+                    if (sp.getPerson()!=null && nz(sp.getPerson().getPersonId()).equals(nz(p.getPersonId()))) return sp;
+                } catch (Throwable ignore) {}
+            }
+            try { return dir.findStudent(nz(p.getPersonId())); } catch (Throwable ignore) {}
+            try { return dir.findStudent(nz(account.getUserLoginName())); } catch (Throwable ignore) {}
+        } catch (Throwable ignoreOuter) {}
+        return null;
+    }
+
+    private static String nz(Object v) { return v == null ? "" : String.valueOf(v); }
+
+    private CourseOffer safeOffer(SeatAssignment sa){
+        try { return sa.getCourseOffer(); } catch (Throwable ignore) { return null; }
+    }
+
+    private String termOf(SeatAssignment sa){
+        try {
+            Object cl = sa.getClass().getMethod("getCourseLoad").invoke(sa);
+            if (cl != null) {
+                try { return nz(cl.getClass().getMethod("getSemester").invoke(cl)); } catch (Throwable ignore) {}
+            }
+        } catch (Throwable ignore) {}
+        return "";
+    }
+
+    private String courseIdOf(CourseOffer co){
+        if (co == null) return "";
+        try { return nz(co.getCourseNumber()); } catch (Throwable ignore) {}
+        try { return nz(co.getCourseId()); }     catch (Throwable ignore) {}
+        try {
+            Object c = co.getCourse();
+            if (c != null) {
+                try { return nz(c.getClass().getMethod("getCOurseNumber").invoke(c)); } catch (Throwable ignore) {}
+                try { return nz(c.getClass().getMethod("getNumber").invoke(c)); }      catch (Throwable ignore) {}
+                try { return nz(c.getClass().getMethod("getId").invoke(c)); }           catch (Throwable ignore) {}
+            }
+        } catch (Throwable ignore) {}
+        return "";
+    }
+
+    private String courseNameOf(CourseOffer co){
+        if (co == null) return "";
+        try { return nz(co.getCourseName()); } catch (Throwable ignore) {}
+        try {
+            Object c = co.getCourse();
+            if (c != null) {
+                try { return nz(c.getClass().getMethod("getCourseName").invoke(c)); } catch (Throwable ignore) {}
+                try { return nz(c.getClass().getMethod("getName").invoke(c)); }       catch (Throwable ignore) {}
+            }
+        } catch (Throwable ignore) {}
+        return "";
+    }
+
+    private int courseCreditsOf(CourseOffer co){
+        if (co == null) return 0;
+        try { return co.getCreditHours(); } catch (Throwable ignore) {}
+        try {
+            Object c = co.getCourse();
+            if (c != null) { return (int)c.getClass().getMethod("getCredits").invoke(c); }
+        } catch (Throwable ignore) {}
+        return 0;
+    }
+
+    private double numericScoreOf(SeatAssignment sa){
+        if (sa == null) return -1;
+        try { return sa.GetCourseStudentScore(); } catch (Throwable ignore) {}
+        try {
+            Object g = sa.getClass().getMethod("getGrade").invoke(sa);
+            if (g instanceof Number) return ((Number) g).doubleValue();
+        } catch (Throwable ignore) {}
+        return -1;
+    }
+
+    private String letterFromScore(double s){
+        if (s < 0) return "N/A";
+        if (s >= 93) return "A";
+        if (s >= 90) return "A-";
+        if (s >= 87) return "B+";
+        if (s >= 83) return "B";
+        if (s >= 80) return "B-";
+        if (s >= 77) return "C+";
+        if (s >= 73) return "C";
+        if (s >= 70) return "C-";
+        if (s >= 60) return "D";
+        return "F";
+    }
+
+    private double gpaPointsFromLetter(String L){
+        switch (L) {
+            case "A":  return 4.0;
+            case "A-": return 3.7;
+            case "B+": return 3.3;
+            case "B":  return 3.0;
+            case "B-": return 2.7;
+            case "C+": return 2.3;
+            case "C":  return 2.0;
+            case "C-": return 1.7;
+            case "D":  return 1.0;
+            case "F":  return 0.0;
+            default:   return 0.0;
+        }
+    }
+
+    private double computeOverallGpa(StudentProfile sp){
+        if (sp == null) return 0.0;
+        List<SeatAssignment> all = new ArrayList<>();
+        try { all = sp.getTranscript().getCourseList(); } catch (Throwable ignore) {}
+        if (all == null) all = new ArrayList<>();
+
+        double pts = 0.0;
+        int creds  = 0;
+        for (SeatAssignment sa : all) {
+            CourseOffer co = safeOffer(sa);
+            int c = courseCreditsOf(co);
+            String L = letterFromScore(numericScoreOf(sa));
+            double gp = gpaPointsFromLetter(L);
+            pts += gp * c;
+            creds += c;
+        }
+        return creds == 0 ? 0.0 : (pts / creds);
+    }
+
+    private static class RowInProgress {
+        final String term, courseId, courseName, status;
+        final int credits;
+        RowInProgress(String term, String id, String name, int cr, String status){
+            this.term = term; this.courseId = id; this.courseName = name; this.credits = cr; this.status = status;
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnBack;
+    private javax.swing.JButton btnRunAudit;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel lblCreditsEarned1;
+    private javax.swing.JLabel lblCreditsRemaining1;
+    private javax.swing.JLabel lblCreditsRequired1;
+    private javax.swing.JLabel lblOverallGpa;
+    private javax.swing.JLabel lblOverallGpaValue;
+    private javax.swing.JLabel lblProgram;
+    private javax.swing.JLabel lblReady;
+    private javax.swing.JLabel lblStudentId;
+    private javax.swing.JLabel lblStudentName;
+    private javax.swing.JLabel lblTermGpaValue;
+    private javax.swing.JPanel pnlProgress1;
+    private javax.swing.JProgressBar prgCredits1;
+    private javax.swing.JScrollPane scrInProgress;
+    private javax.swing.JScrollPane scrRequirements;
+    private javax.swing.JTable tblInProgress1;
+    private javax.swing.JTable tblRequirements1;
     // End of variables declaration//GEN-END:variables
 }
