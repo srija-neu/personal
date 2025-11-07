@@ -7,6 +7,7 @@ package info5100.university.example.Persona;
 
 import info5100.university.example.Department.Department;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -94,5 +95,9 @@ public class StudentDirectory {
             studentlist.remove(sp);
         }
     }
+
+    public List<StudentProfile> getStudentlist() {
+    return studentlist;
+}
     
 }

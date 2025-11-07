@@ -6,21 +6,17 @@ package info5100.university.example.Ui;
 
 import java.awt.CardLayout;
 import javax.swing.JPanel;
-import javax.swing.JOptionPane;
+
 
 import info5100.university.example.Context.UniversityContext;
 
-import info5100.university.example.Department.Department;
 import info5100.university.example.CourseCatalog.CourseCatalog;
 import info5100.university.example.CourseSchedule.CourseSchedule;
-import info5100.university.example.Persona.Person;
 import info5100.university.example.Persona.PersonDirectory;
-import info5100.university.example.Persona.UserAccount;
 import info5100.university.example.Persona.UserAccountDirectory;
 import info5100.university.example.Persona.StudentDirectory;
 import info5100.university.example.Persona.Faculty.FacultyDirectory;
-import info5100.university.example.Ui.FacultyRole.FacultyWorkAreaJPanel;
-
+import info5100.university.example.Ui.StudentRole.StudentWorkAreaJPanel;
 /**
  *
  * @author Srija
@@ -28,7 +24,8 @@ import info5100.university.example.Ui.FacultyRole.FacultyWorkAreaJPanel;
 public class MainJFrame extends javax.swing.JFrame {
     
     private JPanel CardSequencePanel; // alias to workAreajPanel (right-side card container)
-
+// at top of MainJFrame
+private javax.swing.JPanel contentPanel;   // our alias to the card container
     private UniversityContext ctx;
     private PersonDirectory personDirectory;
     private UserAccountDirectory userAccountDirectory;
@@ -45,30 +42,6 @@ public class MainJFrame extends javax.swing.JFrame {
         this.CardSequencePanel = workAreajPanel;
         
         this.ctx = info5100.university.example.bootstrap.ConfigureAUniversity.init();
-
-// Pull everything from the SAME context
-info5100.university.example.Department.Department dept = this.ctx.getDepartment();
-
-this.personDirectory   = dept.getPersonDirectory();
-this.studentDirectory  = dept.getStudentDirectory();
-this.facultyDirectory  = dept.getFacultyDirectory();
-this.courseCatalog     = dept.getCourseCatalog();
-this.courseSchedule    = this.ctx.getSchedule("Fall 2025");
-
-// Bridge accounts (optional) — still from the SAME context
-this.userAccountDirectory = new info5100.university.example.Persona.UserAccountDirectory();
-for (info5100.university.example.Persona.UserAccount ua : this.ctx.getAuth().getAllAccounts()) {
-    if (userAccountDirectory.findByUsername(ua.getUserLoginName()) == null) {
-        userAccountDirectory.createUserAccount(
-            ua.getUserLoginName(),
-            ua.getPassword(),
-            ua.getPerson(),
-            ua.getRole()
-        );
-    }
-}
-        
-        /*this.ctx = info5100.university.example.bootstrap.ConfigureAUniversity.init();
         
         info5100.university.example.Context.UniversityContext ctx =
             info5100.university.example.bootstrap.ConfigureAUniversity.init();
@@ -94,13 +67,17 @@ for (info5100.university.example.Persona.UserAccount ua : this.ctx.getAuth().get
                 ua.getRole()
             );
         }
-    }*/
+    }
 
         // Optional: show a blank/welcome panel on the right
         CardSequencePanel.add("WELCOME", new javax.swing.JPanel());
         ((CardLayout) CardSequencePanel.getLayout()).first(CardSequencePanel);
     }
-
+  public void showCard(String id) {
+    if (contentPanel.getLayout() instanceof CardLayout) {
+        ((CardLayout) contentPanel.getLayout()).show(contentPanel, id);
+    }
+}
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -261,38 +238,8 @@ for (info5100.university.example.Persona.UserAccount ua : this.ctx.getAuth().get
         ((java.awt.CardLayout) workAreajPanel.getLayout()).next(workAreajPanel);
         return;
     }*/
-    
+
     if ("Faculty".equalsIgnoreCase(role)) {
-    // person MUST be linked to the UA
-    if (person == null) {
-        JOptionPane.showMessageDialog(this, "This account has no linked Person.");
-        return;
-    }
-
-    // Find the faculty profile in the SAME directory used by the UI
-    info5100.university.example.Persona.Faculty.FacultyProfile me =
-        facultyDirectory.findByUniversityId(person.getUniversityId());
-
-    if (me == null) {
-        // If profile not found, create it so panel can work
-        me = facultyDirectory.newFacultyProfile(person);
-    }
-
-    // Now show the faculty work area (adjust ctor to match your panel)
-    FacultyWorkAreaJPanel panel =
-        new FacultyWorkAreaJPanel(
-            ctx,              // UniversityContext (you already build this above)
-            me,               // the logged-in faculty profile
-            workAreajPanel    // Card container
-        );
-
-    workAreajPanel.removeAll();
-    workAreajPanel.add("Faculty", panel);
-    ((java.awt.CardLayout) workAreajPanel.getLayout()).next(workAreajPanel);
-    return;
-}
-
-    /*if ("Faculty".equalsIgnoreCase(role)) {
         // Minimal placeholder so app runs without errors until you share FacultyWorkAreaJPanel
         javax.swing.JPanel placeholder = new javax.swing.JPanel();
         placeholder.add(new javax.swing.JLabel("Faculty Work Area - to be wired"));
@@ -300,17 +247,25 @@ for (info5100.university.example.Persona.UserAccount ua : this.ctx.getAuth().get
         workAreajPanel.add("Faculty", placeholder);
         ((java.awt.CardLayout) workAreajPanel.getLayout()).next(workAreajPanel);
         return;
-    }*/
+    }
 
     if ("Student".equalsIgnoreCase(role)) {
-        // Minimal placeholder so app runs without errors until you share StudentWorkAreaJPanel
-        javax.swing.JPanel placeholder = new javax.swing.JPanel();
-        placeholder.add(new javax.swing.JLabel("Student Work Area - to be wired"));
-        workAreajPanel.removeAll();
-        workAreajPanel.add("Student", placeholder);
-        ((java.awt.CardLayout) workAreajPanel.getLayout()).next(workAreajPanel);
-        return;
-    }
+    // Build the real Student hub
+    StudentWorkAreaJPanel panel = new StudentWorkAreaJPanel(
+        ctx,              // full model context (has dept, dirs, schedules)
+        workAreajPanel,   // the right-side CardLayout container
+        ua                // the logged-in user (for profile lookups)
+    );
+    workAreajPanel.removeAll();
+    workAreajPanel.add("StudentHome", panel);
+    ((java.awt.CardLayout) workAreajPanel.getLayout()).next(workAreajPanel);
+
+    // (nice to have) clear login fields
+    txtUsername.setText("");
+    txtPassword.setText("");
+
+    return;
+}
 
     javax.swing.JOptionPane.showMessageDialog(this, "Unknown role: " + role);
     }//GEN-LAST:event_btnLoginActionPerformed
